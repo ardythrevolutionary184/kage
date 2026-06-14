@@ -54,6 +54,8 @@ the `KAGE_CHROME` environment variable. The container image bundles Chromium.
 ```bash
 kage clone <url> [flags]
 kage serve [dir] [flags]
+kage pack <mirror-dir> [flags]
+kage open <file.zim> [flags]
 ```
 
 ### Clone
@@ -110,6 +112,27 @@ assets resolve the way they would on a real host:
 kage serve kage-out/example.com
 # open http://127.0.0.1:8800
 ```
+
+### Pack
+
+`kage pack` collapses a mirror into one distributable file. The default is an
+open ZIM archive (the format Kiwix uses); `--format binary` produces a
+self-contained executable that serves the site offline when run.
+
+```bash
+# A ZIM archive, browsable with kage open or any ZIM reader
+kage pack kage-out/example.com
+kage open example.com.zim
+
+# A single executable that is the site
+kage pack kage-out/example.com --format binary
+./example
+```
+
+Packing is deterministic: the same mirror produces a byte-identical archive. The
+ZIM holds the whole mirror with text zstd-compressed and media stored as-is, so
+it is one tidy file to move, checksum, or hand to someone. The binary carries a
+full kage, so the recipient needs nothing installed.
 
 ## How it works
 

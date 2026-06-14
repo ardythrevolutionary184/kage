@@ -6,6 +6,24 @@ All notable changes to kage are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `kage pack <mirror-dir>` packs a cloned folder into one distributable file.
+  `--format zim` (the default) writes an open ZIM archive, the same single-file
+  format Kiwix uses; `--format binary` appends that archive to a copy of kage to
+  produce a self-contained executable that serves the site offline when run.
+  Flags cover the output path, metadata (`--title`, `--description`,
+  `--language`, `--date`), a `--base` binary for cross-platform viewers, and
+  `--no-compress`.
+- `kage open <file.zim>` serves a packed ZIM over a local HTTP server and opens
+  your browser, the read side of `kage pack --format zim`.
+- A pure-Go `zim` package that writes and reads the ZIM format: a fixed header,
+  MIME and pointer lists, zstd-compressed (or stored) clusters, redirects, and a
+  trailing MD5. It reads xz clusters so archives from other tooling open, and
+  writes zstd or stored only. Packing is deterministic: the same mirror produces
+  a byte-identical archive, with the UUID derived from the content rather than
+  randomised.
+
 ## [0.1.0] - 2026-06-14
 
 The first release. kage clones a live website into a self-contained folder you
