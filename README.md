@@ -1,67 +1,64 @@
 # kage
 
+[![ci](https://github.com/tamnd/kage/actions/workflows/ci.yml/badge.svg)](https://github.com/tamnd/kage/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/tamnd/kage)](https://github.com/tamnd/kage/releases/latest)
+[![Go Reference](https://pkg.go.dev/badge/github.com/tamnd/kage.svg)](https://pkg.go.dev/github.com/tamnd/kage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tamnd/kage)](https://goreportcard.com/report/github.com/tamnd/kage)
+[![License](https://img.shields.io/github/license/tamnd/kage)](./LICENSE)
+
 **kage** (影, "shadow") clones a website into a self-contained folder you can
 browse offline, with all the JavaScript stripped out. It renders every page in
 headless Chrome, snapshots the final rendered DOM, removes every script and
-event handler, and downloads the CSS, images, and fonts and rewrites them to
-local paths. The result looks like the live site but runs no code: a plain
-folder of `.html` files you can open straight from disk.
+event handler, then downloads the CSS, images, and fonts and rewrites them to
+local paths. The result looks like the live site but runs no code.
 
-```bash
-kage clone example.com
-kage serve kage-out/example.com
-```
+[Install](#install) • [Commands](#commands) • [Clone](#clone) • [Pack](#pack-it-into-one-file) • [Native viewer](#a-native-window-not-a-browser-tab) • [How it works](#how-it-works)
 
-## Why
+![kage cloning a site, packing it into one file, and serving it back offline](docs/static/demo.gif)
 
 Saving a page with "Save As" gives you a copy that still phones home, still runs
 analytics, and often renders blank because the markup is built by JavaScript at
-runtime. kage takes the opposite approach:
+runtime. kage takes the opposite approach: it drives a real browser, waits for
+the page to settle, captures the DOM a human would have seen, and then strips
+every script out of it. What lands on disk is inert. No tracking, no network
+calls, no surprises, just a folder of `.html` files you can open straight from
+disk or pack into a single file to hand to someone.
 
-- **Render first, save second.** Each page goes through real headless Chrome, so
-  a page whose content is assembled by JavaScript is captured the way a human
-  would have seen it, not as an empty shell.
-- **Strip every script.** Once the DOM is captured, kage removes all `<script>`
-  tags, every `on*` event handler, and any `javascript:` URL. The saved page is
-  inert: no tracking, no network calls, no surprises.
-- **Keep the layout.** Stylesheets, images, fonts, and media are downloaded and
-  rewritten to relative local paths, so the offline copy looks like the original.
-- **Stay browsable.** In-scope links are rewritten to point at the other saved
-  pages, so you can click around the mirror exactly as you would the live site.
+Full reference and guides live at [kage.tamnd.com](https://kage.tamnd.com).
 
 ## Install
 
 ```bash
-# Go
 go install github.com/tamnd/kage/cmd/kage@latest
-
-# Homebrew (once the tap is published)
-brew install tamnd/tap/kage
-
-# Container (Chromium bundled)
-docker run -v "$PWD/out:/out" ghcr.io/tamnd/kage clone example.com
 ```
 
-Prebuilt archives, `.deb`/`.rpm`/`.apk` packages, and a multi-arch image are
-attached to each [release](https://github.com/tamnd/kage/releases).
-
-kage drives a real browser, so it needs Chrome or Chromium available. It finds a
-system install automatically; point it at a specific binary with `--chrome` or
-the `KAGE_CHROME` environment variable. The container image bundles Chromium.
-
-## Usage
+Or grab a prebuilt archive, `.deb`/`.rpm`/`.apk` package, or checksum from the
+[releases](https://github.com/tamnd/kage/releases), or run the container image,
+which bundles Chromium:
 
 ```bash
-kage clone <url> [flags]
-kage serve [dir] [flags]
-kage pack <mirror-dir> [flags]
-kage open <file.zim> [flags]
+docker run --rm -v "$PWD/out:/out" ghcr.io/tamnd/kage clone example.com
 ```
 
-### Clone
+kage drives a real browser, so it needs Chrome or Chromium on the host. It finds
+a system install automatically; point it at a specific binary with `--chrome` or
+the `KAGE_CHROME` environment variable. The container image needs nothing extra.
+
+Shell completion is built in: `kage completion bash|zsh|fish|powershell`.
+
+## Commands
+
+| Command | Does |
+| --- | --- |
+| `kage clone <url>` | render a site in headless Chrome and write a browsable, script-free mirror |
+| `kage serve [dir]` | preview a cloned folder over a local HTTP server |
+| `kage pack <mirror-dir>` | collapse a mirror into one ZIM archive, or a self-contained viewer binary |
+| `kage open <file.zim>` | serve a packed ZIM back for offline reading |
+
+## Clone
 
 ```bash
-# Clone a whole site into kage-out/<host>/
+# Clone a whole site into $HOME/data/kage/<host>/
 kage clone https://example.com
 
 # Limit the crawl
@@ -73,17 +70,16 @@ kage clone example.com --scope-prefix /docs
 # Include subdomains, and trigger lazy-loaded images by scrolling
 kage clone example.com --subdomains --scroll
 
-# Resume an interrupted run (on by default; Ctrl-C saves state)
-kage clone example.com
-
 # Re-render every page in place to pull in changed content
 kage clone example.com --refresh
 ```
 
-A clone is idempotent: each page is keyed by the file it writes, so the same URL
-reached over http and https, with or without a trailing slash, is fetched once.
-Re-running resumes where it left off; `--refresh` re-renders in place, `--force`
-wipes and starts clean.
+A clone is a polite breadth-first crawl. It honours `robots.txt`, seeds itself
+from `sitemap.xml`, and scopes to the seed host unless you widen it. It is also
+idempotent: each page is keyed by the file it writes, so the same URL reached
+over http and https, with or without a trailing slash, is fetched once.
+Re-running resumes where it left off; Ctrl-C saves state on the way out.
+`--refresh` re-renders in place, `--force` wipes and starts clean.
 
 Common flags:
 
@@ -97,11 +93,12 @@ Common flags:
 | `--exclude` | | Path prefixes to skip (repeatable) |
 | `--scroll` | `false` | Auto-scroll each page to trigger lazy loading |
 | `--workers` | `4` | Concurrent page render workers |
-| `--no-robots` | `false` | Ignore `robots.txt` (be polite) |
+| `--no-robots` | `false` | Ignore `robots.txt` |
 | `-f, --force` | `false` | Delete any existing mirror for the host first |
 | `--chrome` | | Path to the Chrome/Chromium binary |
 
-Run `kage clone --help` for the full list.
+Run `kage clone --help` for the full set, including the render-timing,
+concurrency, and asset-size controls.
 
 ### Serve
 
@@ -109,30 +106,64 @@ Run `kage clone --help` for the full list.
 assets resolve the way they would on a real host:
 
 ```bash
-kage serve kage-out/example.com
+kage serve $HOME/data/kage/example.com
 # open http://127.0.0.1:8800
 ```
 
-### Pack
+## Pack it into one file
 
-`kage pack` collapses a mirror into one distributable file. The default is an
-open ZIM archive (the format Kiwix uses); `--format binary` produces a
-self-contained executable that serves the site offline when run.
+A clone is a folder, which is easy to browse but awkward to move: copying
+thousands of small files is slow, and a directory is less tidy to hand over than
+a single file. `kage pack` collapses a mirror into one artifact.
 
 ```bash
-# A ZIM archive, browsable with kage open or any ZIM reader
-kage pack kage-out/example.com
+# An open ZIM archive, the single-file format Kiwix uses
+kage pack example.com
 kage open example.com.zim
 
-# A single executable that is the site
-kage pack kage-out/example.com --format binary
+# A single executable that *is* the site
+kage pack example.com --format binary
 ./example
 ```
 
-Packing is deterministic: the same mirror produces a byte-identical archive. The
-ZIM holds the whole mirror with text zstd-compressed and media stored as-is, so
-it is one tidy file to move, checksum, or hand to someone. The binary carries a
-full kage, so the recipient needs nothing installed.
+The default is a [ZIM](https://wiki.openzim.org/wiki/ZIM_file_format) archive:
+the whole mirror in one file, text zstd-compressed and media stored as-is, that
+`kage open` or any ZIM reader can browse. `--format binary` appends that archive
+to a copy of kage and produces a single executable that serves the site offline
+when run, so the recipient needs nothing installed, not even kage.
+
+Packing is deterministic: the same mirror produces a byte-identical file, with
+the archive UUID derived from the content rather than randomised, so a pack is
+safe to checksum and cache. A bare host name resolves against the default output
+directory, so `kage pack example.com` works right after `kage clone example.com`.
+
+The appended archive is platform-independent; only the base executable carries
+the architecture. Point `--base` at a kage built for another OS to make a viewer
+for that platform from your own machine:
+
+```bash
+# From macOS, build a Windows viewer
+kage pack example.com --format binary --base kage-windows-amd64.exe   # -> example.exe
+```
+
+## A native window, not a browser tab
+
+By default a packed binary opens the system browser, which means a tab with an
+address bar alongside your others. Build kage with the `webview` tag and it
+opens the site in its own window instead, backed by the operating system's
+WebView (WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux), so a
+packed binary feels like a standalone app:
+
+```bash
+make build-webview                       # or: CGO_ENABLED=1 go build -tags webview ./cmd/kage
+kage pack example.com --format binary --base bin/kage
+./example                                # opens a window, no browser
+```
+
+This build needs cgo and links the platform WebView, so it stays opt-in. The
+default build is pure Go (`CGO_ENABLED=0`) and the prebuilt release binaries
+open the browser, which keeps the cross-compiled release pipeline simple.
+`kage open` honours the same tag.
 
 ## How it works
 
@@ -141,41 +172,67 @@ seed URL ─▶ headless Chrome ─▶ final DOM ─▶ strip JS ─▶ localise
               (render)          (snapshot)   (sanitize)   (rewrite links)
 ```
 
-A clone is a polite breadth-first crawl. Pages are rendered by a pool of Chrome
-tabs; assets are fetched over plain HTTP by a separate worker pool. Every URL
-maps deterministically to a local path, so links can be rewritten before the
-asset they point at has even finished downloading. The crawl honours
-`robots.txt` and seeds itself from `sitemap.xml` by default. Output layout:
+Pages are rendered by a pool of Chrome tabs; assets are fetched over plain HTTP
+by a separate worker pool. Every URL maps deterministically to a local path, so
+links can be rewritten before the asset they point at has finished downloading.
+Output layout:
 
 ```
-kage-out/example.com/
+example.com/
 ├── index.html                 # the home page, scripts stripped
 ├── about/index.html           # /about
 ├── _kage/                      # reserved: assets and crawl state
 │   ├── example.com/site.css    # localised stylesheet (url() rewritten)
 │   ├── example.com/logo.png
-│   └── state.json              # visited set, for --resume
+│   └── state.json              # visited set, for resuming
 └── ...
 ```
+
+The same model underlies `pack`: the mirror's links are already mirror-relative
+paths, and those map one-to-one onto the archive's content entries, so a click
+in a served page hits the right entry with no rewriting.
 
 ## Building from source
 
 ```bash
 git clone https://github.com/tamnd/kage
 cd kage
-make build          # -> bin/kage
-make test           # full suite, including Chrome-driven end-to-end tests
+make build          # -> bin/kage (pure Go, opens the browser)
+make build-webview  # -> bin/kage with the native-window viewer (needs cgo)
+make test           # full suite, including the Chrome-driven end-to-end tests
 make test-short     # skip the tests that launch a browser
 ```
 
-By default kage is pure Go (`CGO_ENABLED=0`) and a packed binary opens the system
-browser. Build with the `webview` tag for a native-window viewer that shows a
-packed site in its own window, backed by the OS WebView, instead of a browser
-tab:
+The repository is laid out by concern:
+
+```
+cmd/kage/   thin main: pins the main thread, then hands off to cli.Execute
+cli/        the cobra command tree and flag wiring
+clone/      the crawl: frontier, render workers, asset workers, resume state
+browser/    headless Chrome control and DOM snapshotting
+sanitize/   strip scripts, handlers, and javascript: URLs from the DOM
+asset/      download and localise CSS, images, and fonts
+urlx/       the deterministic URL-to-path mapping
+zim/        a pure-Go ZIM reader and writer
+pack/       mirror to ZIM or self-contained binary, and the offline HTTP handler
+viewer/     present a served site: system browser, or native window (webview tag)
+docs/       the tago documentation site
+```
+
+## Releasing
+
+Push a version tag and GitHub Actions runs GoReleaser, which builds the
+archives, the `.deb`/`.rpm`/`.apk` packages, a multi-arch GHCR image with
+Chromium bundled, checksums, SBOMs, and a cosign signature:
 
 ```bash
-CGO_ENABLED=1 go build -tags webview -o bin/kage ./cmd/kage
+git tag v0.1.0
+git push --tags
 ```
+
+The image tag carries no `v` prefix (`ghcr.io/tamnd/kage:0.1.0`). The Homebrew
+and Scoop steps self-disable until their tokens exist, so the first release
+works with no extra secrets.
 
 ## License
 

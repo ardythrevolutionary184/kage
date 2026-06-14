@@ -15,8 +15,10 @@ inert.
 
 ```bash
 kage clone example.com
-kage serve kage-out/example.com
+kage serve $HOME/data/kage/example.com
 ```
+
+![kage cloning a site, packing it into one file, and serving it back offline](/demo.gif)
 
 ## What it does
 
@@ -37,5 +39,7 @@ kage serve kage-out/example.com
   the [quick start](/getting-started/quick-start/).
 - Want to install it? See [installation](/getting-started/installation/).
 - Looking for a specific task? The [guides](/guides/) cover scoping a crawl,
-  serving a mirror, and resuming an interrupted run.
+  serving a mirror, resuming an interrupted run, and
+  [packing a mirror](/guides/packing-a-mirror/) into one file or a self-contained
+  viewer.
 - Need every flag? The [CLI reference](/reference/cli/) is the full surface.

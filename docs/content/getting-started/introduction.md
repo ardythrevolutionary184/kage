@@ -46,7 +46,7 @@ folder anywhere, open it with no network, and click around.
 
 kage crawls breadth-first from a seed URL, staying within the seed's host (and
 optionally its subdomains). It is polite by default: it honours `robots.txt` and
-seeds itself from `sitemap.xml`. Output lands in `kage-out/<host>/`, with pages
+seeds itself from `sitemap.xml`. Output lands in `$HOME/data/kage/<host>/`, with pages
 as `<path>/index.html` and assets under a reserved `_kage/` directory alongside
 the crawl state that powers `--resume`.
 

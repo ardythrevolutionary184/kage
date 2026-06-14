@@ -9,6 +9,25 @@ The authoritative, commit-level history lives in
 [releases page](https://github.com/tamnd/kage/releases). This page summarises
 each version.
 
+## Unreleased
+
+Packing, so a clone can travel as one file instead of a folder.
+
+- **`kage pack <mirror-dir>`** collapses a mirror into a single distributable
+  file. `--format zim` (the default) writes an open ZIM archive, the same format
+  Kiwix uses; `--format binary` appends that archive to a copy of kage to make a
+  self-contained executable that serves the site offline when run. Packing is
+  deterministic, so the same mirror produces a byte-identical file.
+- **`kage open <file.zim>`** serves a packed ZIM back over a local HTTP server,
+  the read side of `kage pack --format zim`.
+- **An optional native-window viewer.** Built with `-tags webview`, `kage open`
+  and a packed binary show the site in a real window backed by the operating
+  system's WebView instead of a browser tab. The default build stays pure Go and
+  opens the browser, so the release pipeline is unchanged.
+- **A pure-Go `zim` package** that reads and writes the ZIM format: a fixed
+  header, MIME and pointer lists, zstd or stored clusters, redirects, and a
+  trailing MD5.
+
 ## v0.1.0
 
 The first release. kage clones a live website into a self-contained folder you

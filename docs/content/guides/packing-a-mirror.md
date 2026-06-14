@@ -16,7 +16,7 @@ ZIM is the open, single-file offline-archive format Kiwix uses. `kage pack`
 writes one from a cloned host directory:
 
 ```bash
-kage pack kage-out/example.com
+kage pack $HOME/data/kage/example.com
 ```
 
 ```
@@ -65,7 +65,7 @@ opens your browser; it ignores its arguments, because the binary is the site, no
 the kage CLI.
 
 ```bash
-kage pack kage-out/example.com --format binary
+kage pack $HOME/data/kage/example.com --format binary
 ```
 
 ```
@@ -95,7 +95,7 @@ packed binary feels like a standalone app:
 
 ```bash
 CGO_ENABLED=1 go build -tags webview -o kage ./cmd/kage
-kage pack kage-out/example.com --format binary --base kage
+kage pack $HOME/data/kage/example.com --format binary --base kage
 ./example   # opens a window, no browser
 ```
 
@@ -113,7 +113,7 @@ machine:
 
 ```bash
 # From macOS, build a Windows viewer
-kage pack kage-out/example.com --format binary --base kage-windows-amd64.exe
+kage pack $HOME/data/kage/example.com --format binary --base kage-windows-amd64.exe
 # -> example.exe
 ```
 
@@ -129,7 +129,7 @@ xattr -d com.apple.quarantine ./example
 ## Metadata and options
 
 ```bash
-kage pack kage-out/example.com \
+kage pack $HOME/data/kage/example.com \
   --title "Example, offline" \
   --description "A snapshot taken for archival" \
   --language eng \
