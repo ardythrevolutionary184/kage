@@ -6,27 +6,27 @@
 # kage must be on PATH inside the recording shell, and Chrome available.
 
 Hide
-Type "export PS1='$ ' && cd $(mktemp -d) && clear"
+Type "export PS1='$ ' PATH=/tmp/kagebin:$PATH && cd $(mktemp -d) && clear"
 Enter
 Show
 
 Sleep 600ms
-Type "kage clone example.com --out ."
+Type "kage clone paulgraham.com --max-pages 3 --out ."
 Sleep 700ms
 Enter
-Sleep 4.5s
+Sleep 9s
 
-Type "kage pack example.com"
+Type "kage pack ./paulgraham.com"
 Sleep 700ms
 Enter
 Sleep 2.5s
 
-Type "kage pack example.com --format binary -o example"
+Type "kage pack ./paulgraham.com --format binary -o paulgraham"
 Sleep 700ms
 Enter
 Sleep 3s
 
-Type "kage open example.com.zim --open=false"
+Type "kage open paulgraham.com.zim --open=false"
 Sleep 700ms
 Enter
 Sleep 3s

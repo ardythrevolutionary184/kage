@@ -6,6 +6,8 @@ All notable changes to kage are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-14
+
 ### Added
 
 - `kage pack <mirror-dir>` packs a cloned folder into one distributable file.
@@ -63,5 +65,6 @@ can browse offline, with every script stripped out.
   a multi-arch container image on GHCR (Chromium bundled), checksums, SBOMs, and
   a cosign signature, all cut from one version tag by GoReleaser.
 
-[Unreleased]: https://github.com/tamnd/kage/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/tamnd/kage/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/tamnd/kage/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/tamnd/kage/releases/tag/v0.1.0
