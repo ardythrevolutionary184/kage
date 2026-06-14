@@ -73,13 +73,21 @@ kage clone example.com --subdomains --scroll
 
 # Resume an interrupted run (on by default; Ctrl-C saves state)
 kage clone example.com
+
+# Re-render every page in place to pull in changed content
+kage clone example.com --refresh
 ```
+
+A clone is idempotent: each page is keyed by the file it writes, so the same URL
+reached over http and https, with or without a trailing slash, is fetched once.
+Re-running resumes where it left off; `--refresh` re-renders in place, `--force`
+wipes and starts clean.
 
 Common flags:
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `-o, --out` | `kage-out` | Output root; the mirror lands in `<out>/<host>/` |
+| `-o, --out` | `$HOME/data/kage` | Output root; the mirror lands in `<out>/<host>/` |
 | `-p, --max-pages` | `0` | Stop after N pages (0 = unlimited) |
 | `-d, --max-depth` | `0` | Link-follow depth cap (0 = unlimited) |
 | `--scope-prefix` | | Only crawl pages whose path starts with this prefix |
