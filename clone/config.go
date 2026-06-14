@@ -4,11 +4,23 @@
 package clone
 
 import (
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/tamnd/kage/urlx"
 )
+
+// DefaultOutDir is where mirrors land unless --out overrides it: a per-user data
+// directory ($HOME/data/kage) so clones from anywhere collect in one place,
+// falling back to a local kage-out when the home directory cannot be resolved.
+func DefaultOutDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return "kage-out"
+	}
+	return filepath.Join(home, "data", "kage")
+}
 
 // Config is the full set of knobs for a clone run. DefaultConfig fills the
 // baseline; the CLI overlays flags on top.
@@ -41,8 +53,16 @@ type Config struct {
 	ChromeBin     string
 	ControlURL    string
 
-	Resume bool
-	Force  bool
+	// Resume loads the prior run's visited set and skips pages already written,
+	// so an interrupted or repeated clone picks up where it left off instead of
+	// refetching. Refresh forces every page to be re-rendered in place (the
+	// mirror is kept, files are overwritten) to pull in changed content. Force
+	// deletes the mirror first for a clean-slate clone. Persist writes the
+	// visited set back to state.json when the run ends.
+	Resume  bool
+	Refresh bool
+	Force   bool
+	Persist bool
 }
 
 // DefaultUserAgent is a current desktop Chrome UA, used by the asset fetcher and
@@ -53,7 +73,7 @@ const DefaultUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
 // DefaultConfig returns the baseline configuration.
 func DefaultConfig() Config {
 	return Config{
-		OutDir:        "kage-out",
+		OutDir:        DefaultOutDir(),
 		Reserved:      urlx.DefaultReserved,
 		Workers:       4,
 		AssetWorkers:  8,
@@ -68,6 +88,7 @@ func DefaultConfig() Config {
 		FollowSitemap: true,
 		Headless:      true,
 		Resume:        true,
+		Persist:       true,
 	}
 }
 

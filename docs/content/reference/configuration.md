@@ -20,7 +20,8 @@ kage's launcher can download a private copy of Chromium on first use.
 
 ## Output layout
 
-A clone of `example.com` lands under `kage-out/example.com/`:
+A clone of `example.com` lands under `$HOME/data/kage/example.com/` (override the
+root with `-o/--out`):
 
 ```
 kage-out/example.com/
@@ -50,5 +51,19 @@ Key points:
   `style.css?v=3` is saved with a short hash suffix so two versions never
   collide.
 - **State lives in the mirror.** `_kage/state.json` records every page written,
-  which is what makes `--resume` able to skip completed work. Rename the reserved
+  which is what lets a repeated run skip completed work. Rename the reserved
   directory with `--reserved` if `_kage` would clash with a real path on the site.
+
+## Resume, refresh, and re-crawl
+
+A clone is idempotent: every page is keyed by the file it writes, so the same
+page reached over `http` and `https`, with or without a trailing slash, or as
+`/index.html` versus `/`, is fetched exactly once. Re-running picks the work back
+up rather than starting over.
+
+| You want to… | Use | What happens |
+|--------------|-----|--------------|
+| Continue an interrupted crawl | *(default)* | Loads `state.json`, skips pages already written, fetches only what is missing |
+| Pull in content that changed on the site | `--refresh` | Keeps the mirror, re-renders every page in place, overwrites with the new DOM |
+| Start completely clean | `--force` | Deletes the host's mirror, then crawls from scratch |
+| Run once and leave no trace | `--no-resume` | Skips nothing, writes no `state.json` |

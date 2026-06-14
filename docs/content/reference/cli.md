@@ -24,9 +24,10 @@ images, and fonts, and writes a browsable mirror to `<out>/<host>/`.
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `-o, --out` | `kage-out` | Output root; the mirror lands in `<out>/<host>/` |
+| `-o, --out` | `$HOME/data/kage` | Output root; the mirror lands in `<out>/<host>/` |
 | `--reserved` | `_kage` | Reserved directory name for assets and crawl state |
 | `-f, --force` | `false` | Delete any existing mirror for the host before crawling |
+| `--refresh` | `false` | Re-render every page in place to pull in changed content |
 | `--no-resume` | `false` | Do not read or write resume state |
 
 ### Scope

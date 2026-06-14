@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -151,6 +152,41 @@ func TestCloneEndToEnd(t *testing.T) {
 	}
 }
 
+// TestPageKeyCollapsesDuplicates guards the dedup identity: http vs https, a
+// trailing slash, and "/index.html" vs "/" all name the same output file, so a
+// page is crawled once rather than two-to-four times.
+func TestPageKeyCollapsesDuplicates(t *testing.T) {
+	seed, _ := urlx.ParseSeed("https://ex.com")
+	c := New(seed, DefaultConfig(), nil)
+
+	groups := [][]string{
+		{"https://ex.com/", "http://ex.com/", "https://ex.com/index.html", "http://ex.com/index.html"},
+		{"https://ex.com/docs", "http://ex.com/docs", "https://ex.com/docs/", "https://ex.com/docs/index.html"},
+	}
+	for _, g := range groups {
+		want := c.pageKey(mustURL(t, g[0]))
+		for _, raw := range g[1:] {
+			if got := c.pageKey(mustURL(t, raw)); got != want {
+				t.Errorf("pageKey(%q) = %q, want %q (same page)", raw, got, want)
+			}
+		}
+	}
+
+	// Genuinely different pages must not collapse.
+	if c.pageKey(mustURL(t, "https://ex.com/a")) == c.pageKey(mustURL(t, "https://ex.com/b")) {
+		t.Error("distinct pages share a key")
+	}
+}
+
+func mustURL(t *testing.T, raw string) *url.URL {
+	t.Helper()
+	u, err := url.Parse(raw)
+	if err != nil {
+		t.Fatalf("parse %q: %v", raw, err)
+	}
+	return u
+}
+
 func TestCloneResumeSkipsVisited(t *testing.T) {
 	if testing.Short() {
 		t.Skip("resume test drives Chrome; skipped under -short")
@@ -183,6 +219,45 @@ func TestCloneResumeSkipsVisited(t *testing.T) {
 	}
 	if res2.Pages != 0 {
 		t.Fatalf("resume should skip all visited pages, but rendered %d", res2.Pages)
+	}
+}
+
+func TestCloneRefreshReRenders(t *testing.T) {
+	if testing.Short() {
+		t.Skip("refresh test drives Chrome; skipped under -short")
+	}
+	if _, ok := browser.LookChrome(); !ok {
+		t.Skip("no Chrome/Chromium found; skipping refresh test")
+	}
+
+	srv := testSite(t)
+	defer srv.Close()
+	seed, _ := urlx.ParseSeed(srv.URL)
+
+	out := t.TempDir()
+	cfg := DefaultConfig()
+	cfg.OutDir = out
+	cfg.Settle = 300 * time.Millisecond
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	if _, err := New(seed, cfg, t.Logf).Run(ctx); err != nil {
+		t.Fatalf("first run: %v", err)
+	}
+
+	// Resume keeps everything in place but renders nothing new; refresh, on the
+	// same mirror, re-renders every page so changed content is pulled back in.
+	cfg.Refresh = true
+	res, err := New(seed, cfg, t.Logf).Run(ctx)
+	if err != nil {
+		t.Fatalf("refresh run: %v", err)
+	}
+	if res.Pages < 2 {
+		t.Fatalf("refresh should re-render every page, got %d", res.Pages)
+	}
+	if !fileExists(filepath.Join(out, seed.Hostname(), "index.html")) {
+		t.Error("refresh removed the mirror instead of overwriting in place")
 	}
 }
 

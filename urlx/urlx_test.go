@@ -139,6 +139,11 @@ func TestLocalPathPages(t *testing.T) {
 		{"https://ex.com/docs/intro", "docs/intro/index.html"},
 		{"https://ex.com/a.html", "a.html/index.html"},
 		{"https://sub.ex.com/x", "sub.ex.com/x/index.html"},
+		// A directory-index document is the directory itself, so it shares a
+		// path with the bare directory and with the http/https variant.
+		{"https://ex.com/index.html", "index.html"},
+		{"http://ex.com/", "index.html"},
+		{"https://ex.com/docs/index.html", "docs/index.html"},
 	}
 	for _, c := range cases {
 		got := LocalPath(seed, mustParse(t, c.u), Page, "")

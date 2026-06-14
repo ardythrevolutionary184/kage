@@ -39,6 +39,7 @@ type cloneFlags struct {
 	chromeBin    string
 	controlURL   string
 	noResume     bool
+	refresh      bool
 	force        bool
 	quiet        bool
 }
@@ -57,7 +58,7 @@ func newCloneCmd() *cobra.Command {
 		},
 	}
 	fs := cmd.Flags()
-	fs.StringVarP(&f.out, "out", "o", "kage-out", "output root; the mirror lands in <out>/<host>/")
+	fs.StringVarP(&f.out, "out", "o", clone.DefaultOutDir(), "output root; the mirror lands in <out>/<host>/")
 	fs.StringVar(&f.reserved, "reserved", urlx.DefaultReserved, "reserved dir for assets and state")
 	fs.IntVar(&f.workers, "workers", 4, "concurrent page render workers")
 	fs.IntVar(&f.assetWorkers, "asset-workers", 8, "concurrent asset download workers")
@@ -81,6 +82,7 @@ func newCloneCmd() *cobra.Command {
 	fs.StringVar(&f.chromeBin, "chrome", "", "path to the Chrome/Chromium binary")
 	fs.StringVar(&f.controlURL, "control-url", "", "attach to an existing Chrome DevTools endpoint")
 	fs.BoolVar(&f.noResume, "no-resume", false, "do not reuse or write resume state")
+	fs.BoolVar(&f.refresh, "refresh", false, "re-render every page in place to pull in changed content")
 	fs.BoolVarP(&f.force, "force", "f", false, "delete any existing mirror for the host first")
 	fs.BoolVarP(&f.quiet, "quiet", "q", false, "suppress per-page progress lines")
 	return cmd
@@ -117,6 +119,8 @@ func runClone(ctx context.Context, arg string, f *cloneFlags) error {
 	cfg.ChromeBin = f.chromeBin
 	cfg.ControlURL = f.controlURL
 	cfg.Resume = !f.noResume
+	cfg.Persist = !f.noResume
+	cfg.Refresh = f.refresh
 	cfg.Force = f.force
 
 	logf := func(format string, args ...any) {

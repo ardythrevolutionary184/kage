@@ -206,7 +206,7 @@ func LocalPath(seedHost string, u *url.URL, kind Kind, reserved string) string {
 		base = applyQuery(base, u)
 		return joinClean(reserved, host, dir, base)
 	default: // Page
-		dir := strings.Trim(u.Path, "/")
+		dir := collapseIndex(strings.Trim(u.Path, "/"))
 		leaf := applyQuery("index.html", u)
 		if strings.EqualFold(host, seedHost) {
 			return joinClean(dir, leaf)
@@ -215,6 +215,21 @@ func LocalPath(seedHost string, u *url.URL, kind Kind, reserved string) string {
 		// seed host's tree.
 		return joinClean(host, dir, leaf)
 	}
+}
+
+// collapseIndex treats a directory-index document as the directory itself, so
+// "/" and "/index.html" map to one page, and "/docs/index.html" collapses to
+// "/docs". The argument is a path already trimmed of surrounding slashes.
+func collapseIndex(p string) string {
+	for _, idx := range []string{"index.html", "index.htm"} {
+		if p == idx {
+			return ""
+		}
+		if rest, ok := strings.CutSuffix(p, "/"+idx); ok {
+			return rest
+		}
+	}
+	return p
 }
 
 // splitAsset breaks an asset URL path into a directory and a filename, inventing

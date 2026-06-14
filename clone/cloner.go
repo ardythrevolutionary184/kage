@@ -84,13 +84,28 @@ func New(seed *url.URL, cfg Config, logf Logf) *Cloner {
 // Snapshot returns the current progress, for a CLI ticker.
 func (c *Cloner) Snapshot() Progress { return c.stats.snapshot() }
 
+// pageKey is the dedup identity for a page: its output file. Two URLs that would
+// write to the same file (http vs https, "/" vs "/index.html", a trailing
+// slash) are the same page and must be crawled only once.
+func (c *Cloner) pageKey(u *url.URL) string {
+	return urlx.LocalPath(c.seedHost, u, urlx.Page, c.cfg.Reserved)
+}
+
+// assetKey is the dedup identity for an asset: its output file, so the same
+// bytes referenced over http and https download once.
+func (c *Cloner) assetKey(u *url.URL) string {
+	return urlx.LocalPath(c.seedHost, u, urlx.Asset, c.cfg.Reserved)
+}
+
 // Run executes the clone until the frontier drains, MaxPages is hit, or ctx is
 // cancelled (which flushes the resume state). It returns the final Result.
 func (c *Cloner) Run(ctx context.Context) (Result, error) {
 	if c.cfg.Force {
 		_ = os.RemoveAll(c.outRoot)
 	}
-	if c.cfg.Resume {
+	// Refresh re-renders every page in place, so it deliberately skips loading
+	// the prior visited set; everything else resumes from where it left off.
+	if c.cfg.Resume && !c.cfg.Refresh {
 		if err := c.front.load(c.statePth); err != nil {
 			c.logf("resume: could not load state: %v", err)
 		} else if n := c.front.visitedCount(); n > 0 {
@@ -144,8 +159,10 @@ func (c *Cloner) Run(ctx context.Context) (Result, error) {
 	}()
 	workers.Wait()
 
-	if err := c.front.save(c.statePth); err != nil {
-		c.logf("could not save resume state: %v", err)
+	if c.cfg.Persist {
+		if err := c.front.save(c.statePth); err != nil {
+			c.logf("could not save resume state: %v", err)
+		}
 	}
 
 	res := Result{Progress: c.stats.snapshot(), OutDir: c.outRoot}
@@ -211,7 +228,7 @@ func (c *Cloner) processPage(ctx context.Context, j pageItem) {
 	if ctx.Err() != nil {
 		return
 	}
-	key := urlx.Key(j.u)
+	key := c.pageKey(j.u)
 	if c.cfg.RespectRobots && !c.robots.Allowed(j.u.Path) {
 		c.stats.skipped.Add(1)
 		return
@@ -308,7 +325,7 @@ func (c *Cloner) enqueuePage(ctx context.Context, u *url.URL, depth int) bool {
 	if c.cfg.MaxDepth > 0 && depth > c.cfg.MaxDepth {
 		return false
 	}
-	key := urlx.Key(u)
+	key := c.pageKey(u)
 	if c.front.isVisited(key) {
 		return false
 	}
@@ -336,7 +353,7 @@ func (c *Cloner) enqueuePage(ctx context.Context, u *url.URL, depth int) bool {
 
 // enqueueAsset offers an asset URL for download, deduping by canonical URL.
 func (c *Cloner) enqueueAsset(ctx context.Context, u *url.URL, referer string) {
-	key := urlx.Key(u)
+	key := c.assetKey(u)
 	c.mu.Lock()
 	if c.seenAssets[key] {
 		c.mu.Unlock()
