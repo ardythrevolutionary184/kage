@@ -6,7 +6,7 @@ weight: 40
 
 The authoritative, commit-level history lives in [`CHANGELOG.md`](https://github.com/tamnd/kage/blob/main/CHANGELOG.md) and on the [releases page](https://github.com/tamnd/kage/releases). This page summarises each version.
 
-## Unreleased
+## v0.2.0
 
 Double-click apps, so a packed mirror opens like a real desktop app instead of a terminal program.
 
