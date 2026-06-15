@@ -326,6 +326,24 @@ func TestHandler(t *testing.T) {
 	if code, body := get("/"); code != 200 || !bytes.Contains([]byte(body), []byte("Example Home")) {
 		t.Errorf("GET / = %d %.30q", code, body)
 	}
+
+	// "/" must redirect to the main page's canonical content path, not serve its
+	// bytes in place, so the page's mirror-relative asset URLs resolve against the
+	// right base instead of 404ing.
+	noFollow := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	resp, err := noFollow.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusFound {
+		t.Errorf("GET / status = %d, want 302", resp.StatusCode)
+	}
+	if loc := resp.Header.Get("Location"); loc != "/index.html" {
+		t.Errorf("GET / Location = %q, want %q", loc, "/index.html")
+	}
 	if code, _ := get("/about/index.html"); code != 200 {
 		t.Errorf("GET /about/index.html = %d", code)
 	}
