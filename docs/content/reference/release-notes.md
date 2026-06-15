@@ -6,6 +6,12 @@ weight: 40
 
 The authoritative, commit-level history lives in [`CHANGELOG.md`](https://github.com/tamnd/kage/blob/main/CHANGELOG.md) and on the [releases page](https://github.com/tamnd/kage/releases). This page summarises each version.
 
+## v0.3.2
+
+A fix for garbled text on pages that did not carry a charset of their own.
+
+- **Saved pages declare UTF-8.** kage writes every page as UTF-8, but a site that set its charset only in the HTTP `Content-Type` header, with no `<meta charset>` in the markup, lost that signal once the page became a standalone file. A reader serving the bytes without a charset fell back to its locale encoding and turned every curly quote, dash, and non-breaking space into mojibake. kage now inserts a `<meta charset="utf-8">` at the top of `<head>` when the page does not already declare one, so the page renders correctly in any reader.
+
 ## v0.3.1
 
 A fix for broken styling when a packed mirror's home page is a nested page.
